@@ -1,14 +1,15 @@
 #include <string>
 #include <vector>
-#include "../cobaltEnv/cobalt.h"
+#include "../cobaltEnv/cobalt.cpp"
 #include "../parser/lexer.cpp"
 
 using namespace cblt::lex;
 
 struct Node {
-    virtual std::string TokenLiteral() const = 0;
-    virtual std::string String() const = 0;
+    [[nodiscard]] virtual std::string TokenLiteral() const = 0;
+    [[nodiscard]] virtual std::string String() const = 0;
     virtual ~Node() {}
+    virtual llvm::Value *llvm::codegen();
 };
 
 struct Stmt : Node {
@@ -27,11 +28,11 @@ struct Identifier : Expr {
 
     Identifier(const Token &token, std::string value) : token(token), value(std::move(value)) {}
 
-    std::string TokenLiteral() const override {
+    [[nodiscard]] std::string TokenLiteral() const override {
         return token.literal;
     }
 
-    std::string String() const override {
+    [[nodiscard]] std::string String() const override {
         return value;
     }
 };
@@ -39,15 +40,15 @@ struct Identifier : Expr {
 struct Program final : Node {
     std::vector<std::unique_ptr<Stmt>> stmts;
 
-    std::string TokenLiteral() const override {
+    [[nodiscard]] std::string TokenLiteral() const override {
         if (!stmts.empty()) {
             return stmts[0]->TokenLiteral();
         }
         return "";
     }
 
-    std::string String() const override {
-        std::string res = "";
+    [[nodiscard]] std::string String() const override {
+        std::string res;
         for (const auto& stmt : stmts) {
             res += stmt->String();
         }
@@ -62,11 +63,15 @@ struct NumExpr final : Expr {
     double value;
     void exprNode() override {}
 
-    std::string TokenLiteral() const override {
+    NumExpr(Token token, const double value) : token(std::move(token)), value(value) {}
+
+    [[nodiscard]] std::string TokenLiteral() const override {
         return token.literal;
     }
 
-    std::string String() const override {
+    [[nodiscard]] std::string String() const override {
         return token.literal;
     }
+
+    llvm::Value *codegen() override;
 };
