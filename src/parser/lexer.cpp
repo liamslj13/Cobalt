@@ -5,8 +5,7 @@
 namespace cblt::lex {
     enum struct TokenType {
         IDENT,
-        FLOAT,
-        INT,
+        NUM,
         STRING,
         DECLARE,
 
@@ -69,8 +68,7 @@ namespace cblt::lex {
     std::string tokenTypeToString(const TokenType type) {
         switch (type) {
             case TokenType::IDENT: return "IDENT";
-            case TokenType::FLOAT: return "FLOAT";
-            case TokenType::INT: return "INT";
+            case TokenType::NUM: return "NUM";
             case TokenType::STRING: return "STRING";
             case TokenType::DECLARE: return "DECLARE";
 
@@ -340,11 +338,7 @@ namespace cblt::lex {
                                               std::to_string(line) + ", expected=FLOAT, got=ILLEGAL";
                             errors.emplace_back(err);
                         } else {
-                            if (res[1] == "int") {
-                                tok = newToken(TokenType::INT, res[0], line);
-                            } else {
-                                tok = newToken(TokenType::FLOAT, res[0], line);
-                            }
+                            tok = newToken(TokenType::NUM, res[0], line);
                         }
                         return tok;
                     }
@@ -383,7 +377,7 @@ namespace cblt::lex {
         // after rereading could have used static arr
         // too lazy to fix now
         std::vector<std::string> readNumber() {
-            int startPosition = pos;
+            const int startPosition = pos;
             bool hasDecimal = false;
             bool isInvalid = false;
 
@@ -399,15 +393,16 @@ namespace cblt::lex {
             }
 
             std::string literal = input.substr(startPosition, pos - startPosition);
+            std::string valid;
 
             std::string type;
             if (isInvalid) {
-                type = "inv";
+                valid = "inv";
             } else {
-                type = hasDecimal ? "float" : "int";
+                valid = "valid";
             }
 
-            return {literal, type};
+            return {literal, valid};
         }
 
 
