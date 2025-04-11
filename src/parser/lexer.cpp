@@ -127,26 +127,26 @@ namespace cblt::lex {
     struct Token {
         TokenType type;
         std::string literal;
-        int line;
+        int line{};
 
         explicit Token() = default;
 
-        explicit Token(const TokenType type, const std::string &literal, const int line) : type(type), literal(literal),
+        explicit Token(const TokenType type, std::string literal, const int line) : type(type), literal(std::move(literal)),
             line(line) {
         }
 
-        std::string toString() const {
+        [[nodiscard]] std::string toString() const {
             return "Token(Type: " + tokenTypeToString(type) + ", Literal: " +
                    literal + ", Line: " + std::to_string(line) + ")";
         }
     };
 
-    class lexer {
+    class Lexer {
         std::string input;
-        char ch;
-        int pos;
-        int readPos;
-        int line;
+        char ch{};
+        int pos{};
+        int readPos{};
+        int line{};
         std::vector<std::string> errors;
 
         std::unordered_map<std::string, TokenType> keywords = {
@@ -163,7 +163,7 @@ namespace cblt::lex {
         };
 
     public:
-        explicit lexer(std::string input) : input(std::move(input)), pos(0), readPos(0), line(1) {
+        explicit Lexer(std::string input) : input(std::move(input)), ch(' '), pos(0), readPos(0), line(1) {
             readChar();
         }
 
@@ -353,7 +353,7 @@ namespace cblt::lex {
             return tok;
         }
 
-        char peekChar() const {
+        [[nodiscard]] char peekChar() const {
             if (readPos >= input.length()) {
                 return 0;
             }

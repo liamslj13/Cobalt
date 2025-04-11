@@ -3,73 +3,70 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #include "../parser/lexer.cpp"
-
-using namespace cblt::lex;
 
 void testLexer() {
     struct Expected {
-        TokenType type;
+        cblt::lex::TokenType type;
         std::string literal;
         int line;
     };
 
     std::vector<Expected> expected = {
-        { TokenType::FUNCTION, "fnc", 1 },
-        { TokenType::IF,       "if", 1 },
-        { TokenType::ELSE,     "else", 1 },
-        { TokenType::WHILE,    "while", 1 },
-        { TokenType::RETURN,   "return", 1 },
-        { TokenType::BREAK,    "break", 1 },
-        { TokenType::CONTINUE, "continue", 1 },
-        { TokenType::TRUE,     "true", 1 },
-        { TokenType::FALSE,    "false", 1 },
-        { TokenType::IDENT,  "foo", 1 },
-        { TokenType::NUM,    "123", 1 },
-        { TokenType::NUM,  "45.67", 1 },
-        { TokenType::ASSIGN,    "=", 1 },
-        { TokenType::PLUS,      "+", 1 },
-        { TokenType::MINUS,     "-", 1 },
-        { TokenType::ASTERISK,  "*", 1 },
-        { TokenType::SLASH,     "/", 1 },
-        { TokenType::PERCENT,   "%", 1 },
-        { TokenType::BANG,      "!", 1 },
-        { TokenType::BAR,       "|", 1 },
-        { TokenType::AMPERSAND, "&", 1 },
-        { TokenType::CIRCUMFLEX,"^", 1 },
-        { TokenType::DOT,       ".", 1 },
-        { TokenType::DOLLAR,    "$", 1 },
-        { TokenType::TERNARY,   "->", 1 },
-        { TokenType::GT,    ">", 2 },
-        { TokenType::LT,    "<", 2 },
-        { TokenType::GTE,   ">=", 2 },
-        { TokenType::LTE,   "<=", 2 },
-        { TokenType::EQ,    "==", 2 },
-        { TokenType::NEQ,   "!=", 2 },
-        { TokenType::AND,   "&&", 2 },
-        { TokenType::OR,    "||", 2 },
-        { TokenType::LPAREN,   "(", 2 },
-        { TokenType::RPAREN,   ")", 2 },
-        { TokenType::LBRACE,   "{", 2 },
-        { TokenType::RBRACE,   "}", 2 },
-        { TokenType::LBRACKET, "[", 2 },
-        { TokenType::RBRACKET, "]", 2 },
-        { TokenType::SEMICOLON,";", 2 },
-        { TokenType::COLON,    ":", 2 },
-        { TokenType::COMMA,    ",", 2 },
+        { cblt::lex::TokenType::FUNCTION, "fnc", 1 },
+        { cblt::lex::TokenType::IF,       "if", 1 },
+        { cblt::lex::TokenType::ELSE,     "else", 1 },
+        { cblt::lex::TokenType::WHILE,    "while", 1 },
+        { cblt::lex::TokenType::RETURN,   "return", 1 },
+        { cblt::lex::TokenType::BREAK,    "break", 1 },
+        { cblt::lex::TokenType::CONTINUE, "continue", 1 },
+        { cblt::lex::TokenType::TRUE,     "true", 1 },
+        { cblt::lex::TokenType::FALSE,    "false", 1 },
+        { cblt::lex::TokenType::IDENT,  "foo", 1 },
+        { cblt::lex::TokenType::NUM,    "123", 1 },
+        { cblt::lex::TokenType::NUM,  "45.67", 1 },
+        { cblt::lex::TokenType::ASSIGN,    "=", 1 },
+        { cblt::lex::TokenType::PLUS,      "+", 1 },
+        { cblt::lex::TokenType::MINUS,     "-", 1 },
+        { cblt::lex::TokenType::ASTERISK,  "*", 1 },
+        { cblt::lex::TokenType::SLASH,     "/", 1 },
+        { cblt::lex::TokenType::PERCENT,   "%", 1 },
+        { cblt::lex::TokenType::BANG,      "!", 1 },
+        { cblt::lex::TokenType::BAR,       "|", 1 },
+        { cblt::lex::TokenType::AMPERSAND, "&", 1 },
+        { cblt::lex::TokenType::CIRCUMFLEX,"^", 1 },
+        { cblt::lex::TokenType::DOT,       ".", 1 },
+        { cblt::lex::TokenType::DOLLAR,    "$", 1 },
+        { cblt::lex::TokenType::TERNARY,   "->", 1 },
+        { cblt::lex::TokenType::GT,    ">", 2 },
+        { cblt::lex::TokenType::LT,    "<", 2 },
+        { cblt::lex::TokenType::GTE,   ">=", 2 },
+        { cblt::lex::TokenType::LTE,   "<=", 2 },
+        { cblt::lex::TokenType::EQ,    "==", 2 },
+        { cblt::lex::TokenType::NEQ,   "!=", 2 },
+        { cblt::lex::TokenType::AND,   "&&", 2 },
+        { cblt::lex::TokenType::OR,    "||", 2 },
+        { cblt::lex::TokenType::LPAREN,   "(", 2 },
+        { cblt::lex::TokenType::RPAREN,   ")", 2 },
+        { cblt::lex::TokenType::LBRACE,   "{", 2 },
+        { cblt::lex::TokenType::RBRACE,   "}", 2 },
+        { cblt::lex::TokenType::LBRACKET, "[", 2 },
+        { cblt::lex::TokenType::RBRACKET, "]", 2 },
+        { cblt::lex::TokenType::SEMICOLON,";", 2 },
+        { cblt::lex::TokenType::COLON,    ":", 2 },
+        { cblt::lex::TokenType::COMMA,    ",", 2 },
 
-        { TokenType::STRING,   "hello world", 2 },
-        { TokenType::EoF,      "", 2 }
+        { cblt::lex::TokenType::STRING,   "hello world", 2 },
+        { cblt::lex::TokenType::EoF,      "", 2 }
     };
 
     std::string input = R"(fnc if else while return break continue true false foo 123 45.67 =+-*/%!|&^.$->
 > < >= <= == != && || (){}[];:,"hello world"
 )";
 
-    lexer l(input);
+    cblt::lex::Lexer l(input);
     for (int i = 0; i < expected.size(); ++i) {
-        Token tok = l.nextToken();
+        cblt::lex::Token tok = l.nextToken();
         std::cout << tok.toString() << '\n';
         assert(tok.type    == expected[i].type    && "TokenType mismatch");
         assert(tok.literal == expected[i].literal && "Token literal mismatch");
