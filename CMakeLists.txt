@@ -10,6 +10,7 @@ add_executable(Cobalt main.cpp
         src/parser/ast.cpp
         src/parser/parser.cpp
         src/codegen/codegen.cpp
+        src/h/lexer.h
 )
 
 # connect llvm

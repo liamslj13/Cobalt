@@ -1,70 +1,6 @@
-#include <iostream>
-#include <string>
-#include <vector>
+#include "../h/lexer.h"
 
 namespace cblt::lex {
-    enum struct TokenType {
-        IDENT,
-        NUM,
-        STRING,
-        DECLARE,
-
-        // type keywrods
-        NUM_TYPE, // num
-        BOOL_TYPE, // bool
-        STRING_TYPE, // str
-
-        ASSIGN,
-        PLUS,
-        MINUS,
-        ASTERISK,
-        SLASH,
-        PERCENT,
-
-        LPAREN,
-        RPAREN,
-        LBRACE,
-        RBRACE,
-        LBRACKET,
-        RBRACKET,
-
-        SEMICOLON,
-        COLON,
-        COMMA,
-        BANG,
-        BAR,
-        AMPERSAND,
-        CIRCUMFLEX,
-        DOT,
-        DOLLAR,
-        TERNARY,
-
-        // boolean operators
-        GT,
-        LT,
-        GTE,
-        LTE,
-        EQ,
-        NEQ,
-        AND,
-        OR,
-
-        // keywords
-        FUNCTION,
-        IF,
-        ELSE,
-        WHILE,
-        RETURN,
-        BREAK,
-        CONTINUE,
-        TRUE,
-        FALSE,
-
-        NEWLINE,
-        ILLEGAL,
-        EoF,
-    };
-
     std::string tokenTypeToString(const TokenType type) {
         switch (type) {
             case TokenType::IDENT: return "IDENT";
@@ -124,302 +60,291 @@ namespace cblt::lex {
         }
     }
 
-    struct Token {
-        TokenType type;
-        std::string literal;
-        int line{};
+    Token::Token() : type(TokenType::ILLEGAL), line(0) {
+    }
 
-        explicit Token() = default;
+    Token::Token(const TokenType type, std::string literal, const int line)
+        : type(type), literal(std::move(literal)), line(line) {
+    }
 
-        explicit Token(const TokenType type, std::string literal, const int line) : type(type), literal(std::move(literal)),
-            line(line) {
+    std::string Token::toString() const {
+        return "Token(Type: " + tokenTypeToString(type) +
+               ", Literal: " + literal +
+               ", Line: " + std::to_string(line) + ")";
+    }
+
+    Lexer::Lexer(std::string input)
+        : input(std::move(input)), ch(' '), pos(0), readPos(0), line(1),
+          keywords({
+              {"fnc", TokenType::FUNCTION},
+              {"if", TokenType::IF},
+              {"else", TokenType::ELSE},
+              {"while", TokenType::WHILE},
+              {"return", TokenType::RETURN},
+              {"break", TokenType::BREAK},
+              {"continue", TokenType::CONTINUE},
+              {"true", TokenType::TRUE},
+              {"false", TokenType::FALSE},
+              {"decl", TokenType::DECLARE},
+          }) {
+        readChar();
+    }
+
+    void Lexer::readChar() {
+        if (readPos >= input.length()) {
+            ch = 0;
+        } else {
+            ch = input[readPos];
         }
+        pos = readPos;
+        readPos++;
+    }
 
-        [[nodiscard]] std::string toString() const {
-            return "Token(Type: " + tokenTypeToString(type) + ", Literal: " +
-                   literal + ", Line: " + std::to_string(line) + ")";
+    void Lexer::skipWhitespace() {
+        while (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+            if (ch == '\n') {
+                line++;
+            }
+            readChar();
         }
-    };
+    }
 
-    class Lexer {
-        std::string input;
-        char ch{};
-        int pos{};
-        int readPos{};
-        int line{};
-        std::vector<std::string> errors;
+    Token Lexer::nextToken() {
+        Token tok;
+        skipWhitespace();
 
-        std::unordered_map<std::string, TokenType> keywords = {
-            {"fnc", TokenType::FUNCTION},
-            {"if", TokenType::IF},
-            {"else", TokenType::ELSE},
-            {"while", TokenType::WHILE},
-            {"return", TokenType::RETURN},
-            {"break", TokenType::BREAK},
-            {"continue", TokenType::CONTINUE},
-            {"true", TokenType::TRUE},
-            {"false", TokenType::FALSE},
-            {"decl", TokenType::DECLARE},
-        };
+        switch (ch) {
+            // basic operators
+            case '=':
+                if (peekChar() == '=') {
+                    readChar();
+                    tok = newToken(TokenType::EQ, "==", line);
+                } else {
+                    tok = newToken(TokenType::ASSIGN, std::string(1, ch), line);
+                }
+                break;
+            case '+':
+                tok = newToken(TokenType::PLUS, std::string(1, ch), line);
+                break;
+            case '-':
+                if (peekChar() == '>') {
+                    readChar();
+                    tok = newToken(TokenType::TERNARY, "->", line);
+                } else {
+                    tok = newToken(TokenType::MINUS, std::string(1, ch), line);
+                }
+                break;
+            case '*':
+                tok = newToken(TokenType::ASTERISK, std::string(1, ch), line);
+                break;
+            case '/':
+                if (peekChar() == '/') {
+                    while (ch != '\n') {
+                        readChar();
+                    }
+                    readChar();
+                } else {
+                    tok = newToken(TokenType::SLASH, std::string(1, ch), line);
+                }
+                break;
+            case '%':
+                tok = newToken(TokenType::PERCENT, std::string(1, ch), line);
+                break;
 
-    public:
-        explicit Lexer(std::string input) : input(std::move(input)), ch(' '), pos(0), readPos(0), line(1) {
+            // braces, brackets etc
+            case '(':
+                tok = newToken(TokenType::LPAREN, std::string(1, ch), line);
+                break;
+            case ')':
+                tok = newToken(TokenType::RPAREN, std::string(1, ch), line);
+                break;
+            case '{':
+                tok = newToken(TokenType::LBRACE, std::string(1, ch), line);
+                break;
+            case '}':
+                tok = newToken(TokenType::RBRACE, std::string(1, ch), line);
+                break;
+            case '[':
+                tok = newToken(TokenType::LBRACKET, std::string(1, ch), line);
+                break;
+            case ']':
+                tok = newToken(TokenType::RBRACKET, std::string(1, ch), line);
+                break;
+
+            // statement separators, other char/op etc
+            case ';':
+                tok = newToken(TokenType::SEMICOLON, std::string(1, ch), line);
+                break;
+            case ':':
+                tok = newToken(TokenType::COLON, std::string(1, ch), line);
+                break;
+            case ',':
+                tok = newToken(TokenType::COMMA, std::string(1, ch), line);
+                break;
+            case '!':
+                if (peekChar() == '=') {
+                    readChar();
+                    tok = newToken(TokenType::NEQ, "!=", line);
+                } else {
+                    tok = newToken(TokenType::BANG, std::string(1, ch), line);
+                }
+                break;
+            case '|':
+                if (peekChar() == '|') {
+                    readChar();
+                    tok = newToken(TokenType::OR, "||", line);
+                } else {
+                    tok = newToken(TokenType::BAR, std::string(1, ch), line);
+                }
+                break;
+            case '&':
+                if (peekChar() == '&') {
+                    readChar();
+                    tok = newToken(TokenType::AND, "&&", line);
+                } else {
+                    tok = newToken(TokenType::AMPERSAND, std::string(1, ch), line);
+                }
+                break;
+            case '^':
+                tok = newToken(TokenType::CIRCUMFLEX, std::string(1, ch), line);
+                break;
+            case '.':
+                tok = newToken(TokenType::DOT, std::string(1, ch), line);
+                break;
+            case '$':
+                tok = newToken(TokenType::DOLLAR, std::string(1, ch), line);
+                break;
+
+            // boolean operators
+            case '>':
+                if (peekChar() == '=') {
+                    readChar();
+                    tok = newToken(TokenType::GTE, ">=", line);
+                } else {
+                    tok = newToken(TokenType::GT, std::string(1, ch), line);
+                }
+                break;
+            case '"':
+                tok = newToken(TokenType::STRING, readString(), line);
+                break;
+            case '<':
+                if (peekChar() == '=') {
+                    readChar();
+                    tok = newToken(TokenType::LTE, "<=", line);
+                } else {
+                    tok = newToken(TokenType::LT, std::string(1, ch), line);
+                }
+                break;
+
+            // special cases
+            case 0:
+                tok.literal = "";
+                tok.type = TokenType::EoF;
+                tok.line = line;
+                break;
+            default: {
+                if (isalpha(ch)) {
+                    tok.literal = readIdent();
+                    if (keywords.find(tok.literal) != keywords.end()) {
+                        tok.type = keywords[tok.literal];
+                    } else {
+                        tok.type = TokenType::IDENT;
+                    }
+                    tok.line = line;
+                    return tok;
+                }
+                if (isdigit(ch)) {
+                    std::vector<std::string> res = readNumber();
+                    if (res[1] == "inv") {
+                        tok = newToken(TokenType::ILLEGAL, res[0], line);
+                        std::string err = "Lex error: illegal num literal, num must have one decimal\nline=" +
+                                          std::to_string(line) + ", expected=FLOAT, got=ILLEGAL";
+                        errors.emplace_back(err);
+                    } else {
+                        tok = newToken(TokenType::NUM, res[0], line);
+                    }
+                    return tok;
+                }
+                std::string err = "Lex error: unknown symbol: " +
+                                  tok.literal + ", line=" + std::to_string(line) +
+                                  "\nexpected valid TokenType, got=ILLEGAL";
+                errors.emplace_back(err);
+                tok = newToken(TokenType::ILLEGAL, "", line);
+            }
+        }
+        readChar();
+        return tok;
+    }
+
+
+    Token Lexer::newToken(const TokenType tt, const std::string &lit, const int lineNum) {
+        return Token(tt, lit, lineNum); // i think this specifies length of object to be cast
+    }
+
+
+    [[nodiscard]] char Lexer::peekChar() const {
+        if (readPos >= input.length()) {
+            return 0;
+        }
+        return input[readPos];
+    }
+
+
+    std::string Lexer::readIdent() {
+        const int start = pos;
+        while (isalpha(ch)) {
+            readChar();
+        }
+        return input.substr(start, pos - start);
+    }
+
+    // We will mimic multiple value return by utilizing a vector
+    // vec[0] -> num value, vec[1] -> "int" || "float"? -> if inv throw error
+    // after rereading could have used static arr
+    // too lazy to fix now
+    std::vector<std::string> Lexer::readNumber() {
+        const int startPosition = pos;
+        bool hasDecimal = false;
+        bool isInvalid = false;
+
+        while (isdigit(ch) || ch == '.') {
+            if (ch == '.') {
+                if (hasDecimal) {
+                    isInvalid = true;
+                }
+                hasDecimal = true;
+            }
+
             readChar();
         }
 
+        std::string literal = input.substr(startPosition, pos - startPosition);
+        std::string valid;
 
-        void readChar() {
-            if (readPos >= input.length()) {
-                ch = 0;
-            } else {
-                ch = input[readPos];
-            }
-            pos = readPos;
-            readPos++;
+        std::string type;
+        if (isInvalid) {
+            valid = "inv";
+        } else {
+            valid = "valid";
         }
 
-        void skipWhiteSpace() {
-            while (ch == ' ' || ch == '\t' || ch == '\r' ||  ch == '\n') {
-                if (ch == '\n') {
-                    line++;
-                }
-                readChar();
-            }
-        }
+        return {literal, valid};
+    }
 
-        Token nextToken() {
-            Token tok;
-            skipWhiteSpace();
 
-            switch (ch) {
-                // basic operators
-                case '=':
-                    if (peekChar() == '=') {
-                        readChar();
-                        tok = newToken(TokenType::EQ, "==", line);
-                    } else {
-                        tok = newToken(TokenType::ASSIGN, std::string(1, ch), line);
-                    }
-                    break;
-                case '+':
-                    tok = newToken(TokenType::PLUS, std::string(1, ch), line);
-                    break;
-                case '-':
-                    if (peekChar() == '>') {
-                        readChar();
-                        tok = newToken(TokenType::TERNARY, "->", line);
-                    } else {
-                        tok = newToken(TokenType::MINUS, std::string(1, ch), line);
-                    }
-                    break;
-                case '*':
-                    tok = newToken(TokenType::ASTERISK, std::string(1, ch), line);
-                    break;
-                case '/':
-                    if (peekChar() == '/') {
-                        while (ch != '\n') {
-                            readChar();
-                        }
-                        readChar();
-                    } else {
-                        tok = newToken(TokenType::SLASH, std::string(1, ch), line);
-                    }
-                    break;
-                case '%':
-                    tok = newToken(TokenType::PERCENT, std::string(1, ch), line);
-                    break;
-
-                // braces, brackets etc
-                case '(':
-                    tok = newToken(TokenType::LPAREN, std::string(1, ch), line);
-                    break;
-                case ')':
-                    tok = newToken(TokenType::RPAREN, std::string(1, ch), line);
-                    break;
-                case '{':
-                    tok = newToken(TokenType::LBRACE, std::string(1, ch), line);
-                    break;
-                case '}':
-                    tok = newToken(TokenType::RBRACE, std::string(1, ch), line);
-                    break;
-                case '[':
-                    tok = newToken(TokenType::LBRACKET, std::string(1, ch), line);
-                    break;
-                case ']':
-                    tok = newToken(TokenType::RBRACKET, std::string(1, ch), line);
-                    break;
-
-                // statement separators, other char/op etc
-                case ';':
-                    tok = newToken(TokenType::SEMICOLON, std::string(1, ch), line);
-                    break;
-                case ':':
-                    tok = newToken(TokenType::COLON, std::string(1, ch), line);
-                    break;
-                case ',':
-                    tok = newToken(TokenType::COMMA, std::string(1, ch), line);
-                    break;
-                case '!':
-                    if (peekChar() == '=') {
-                        readChar();
-                        tok = newToken(TokenType::NEQ, "!=", line);
-                    } else {
-                        tok = newToken(TokenType::BANG, std::string(1, ch), line);
-                    }
-                    break;
-                case '|':
-                    if (peekChar() == '|') {
-                        readChar();
-                        tok = newToken(TokenType::OR, "||", line);
-                    } else {
-                        tok = newToken(TokenType::BAR, std::string(1, ch), line);
-                    }
-                    break;
-                case '&':
-                    if (peekChar() == '&') {
-                        readChar();
-                        tok = newToken(TokenType::AND, "&&", line);
-                    } else {
-                        tok = newToken(TokenType::AMPERSAND, std::string(1, ch), line);
-                    }
-                    break;
-                case '^':
-                    tok = newToken(TokenType::CIRCUMFLEX, std::string(1, ch), line);
-                    break;
-                case '.':
-                    tok = newToken(TokenType::DOT, std::string(1, ch), line);
-                    break;
-                case '$':
-                    tok = newToken(TokenType::DOLLAR, std::string(1, ch), line);
-                    break;
-
-                // boolean operators
-                case '>':
-                    if (peekChar() == '=') {
-                        readChar();
-                        tok = newToken(TokenType::GTE, ">=", line);
-                    } else {
-                        tok = newToken(TokenType::GT, std::string(1, ch), line);
-                    }
-                    break;
-                case '"':
-                    tok = newToken(TokenType::STRING, readString(), line);
-                    break;
-                case '<':
-                    if (peekChar() == '=') {
-                        readChar();
-                        tok = newToken(TokenType::LTE, "<=", line);
-                    } else {
-                        tok = newToken(TokenType::LT, std::string(1, ch), line);
-                    }
-                    break;
-
-                // special cases
-                case 0:
-                    tok.literal = "";
-                    tok.type = TokenType::EoF;
-                    break;
-                default: {
-                    if (isalpha(ch)) {
-                        tok.literal = readIdent();
-                        if (keywords.find(tok.literal) != keywords.end()) {
-                            tok.type = keywords[tok.literal];
-                        } else {
-                            tok.type = TokenType::IDENT;
-                        }
-                        tok.line = line;
-                        return tok;
-                    }
-                    if (isdigit(ch)) {
-                        std::vector<std::string> res = readNumber();
-                        if (res[1] == "inv") {
-                            tok = newToken(TokenType::ILLEGAL, res[0], line);
-                            std::string err = "Lex error: illegal num literal, num must have one decimal\nline=" +
-                                              std::to_string(line) + ", expected=FLOAT, got=ILLEGAL";
-                            errors.emplace_back(err);
-                        } else {
-                            tok = newToken(TokenType::NUM, res[0], line);
-                        }
-                        return tok;
-                    }
-                    std::string err = "Lex error: unknown symbol: " +
-                                      tok.literal + ", line=" + std::to_string(line) +
-                                      "\nexpected valid TokenType, got=ILLEGAL";
-                    errors.emplace_back(err);
-                    tok = newToken(TokenType::ILLEGAL, "", line);
-                }
-            }
+    std::string Lexer::readString() {
+        std::string res;
+        readChar();
+        while (ch != '"' && ch != 0) {
+            res += ch;
             readChar();
-            return tok;
         }
 
-        [[nodiscard]] char peekChar() const {
-            if (readPos >= input.length()) {
-                return 0;
-            }
-            return input[readPos];
-        }
-
-        static Token newToken(const TokenType tt, const std::string &lit, const int lineNum) {
-            return Token(tt, lit, lineNum); // i think this specifies length of object to be cast
-        }
-
-        std::string readIdent() {
-            const int start = pos;
-            while (isalpha(ch)) {
-                readChar();
-            }
-            return input.substr(start, pos - start);
-        }
-
-        // We will mimic multiple value return by utilizing a vector
-        // vec[0] -> num value, vec[1] -> "int" || "float"? -> if inv throw error
-        // after rereading could have used static arr
-        // too lazy to fix now
-        std::vector<std::string> readNumber() {
-            const int startPosition = pos;
-            bool hasDecimal = false;
-            bool isInvalid = false;
-
-            while (isdigit(ch) || ch == '.') {
-                if (ch == '.') {
-                    if (hasDecimal) {
-                        isInvalid = true;
-                    }
-                    hasDecimal = true;
-                }
-
-                readChar();
-            }
-
-            std::string literal = input.substr(startPosition, pos - startPosition);
-            std::string valid;
-
-            std::string type;
-            if (isInvalid) {
-                valid = "inv";
-            } else {
-                valid = "valid";
-            }
-
-            return {literal, valid};
-        }
-
-
-        std::string readString() {
-            std::string res;
-            readChar();
-            while (ch != '"' && ch != 0) {
-                res += ch;
-                readChar();
-            }
-
-            if (ch == 0) {
-                errors.emplace_back("Lex error: unterminated string sequence, line=" + std::to_string(line));
-                return res;
-            }
-
+        if (ch == 0) {
+            errors.emplace_back("Lex error: unterminated string sequence, line=" + std::to_string(line));
             return res;
         }
-    };
+
+        return res;
+    }
 } // cblt::lex

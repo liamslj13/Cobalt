@@ -57,20 +57,23 @@ void testLexer() {
         { cblt::lex::TokenType::COMMA,    ",", 2 },
 
         { cblt::lex::TokenType::STRING,   "hello world", 2 },
-        { cblt::lex::TokenType::EoF,      "", 2 }
+        { cblt::lex::TokenType::STRING,   "rizz", 4 },
+        { cblt::lex::TokenType::EoF,      "", 5 }
     };
 
     std::string input = R"(fnc if else while return break continue true false foo 123 45.67 =+-*/%!|&^.$->
 > < >= <= == != && || (){}[];:,"hello world"
+
+"rizz"
 )";
 
     cblt::lex::Lexer l(input);
-    for (int i = 0; i < expected.size(); ++i) {
+    for (auto & i : expected) {
         cblt::lex::Token tok = l.nextToken();
         std::cout << tok.toString() << '\n';
-        assert(tok.type    == expected[i].type    && "TokenType mismatch");
-        assert(tok.literal == expected[i].literal && "Token literal mismatch");
-        assert(tok.line    == expected[i].line    && "Token line mismatch");
+        assert(tok.type    == i.type    && "TokenType mismatch");
+        assert(tok.literal == i.literal && "Token literal mismatch");
+        assert(tok.line    == i.line    && "Token line mismatch");
     }
 
     std::cout << "lexer tests pass\n";
