@@ -6,13 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(Cobalt main.cpp
         src/parser/lexer.cpp
         src/tests/lexer_test.cpp
-        src/cobaltEnv/cobalt.cpp
         src/parser/ast.cpp
         src/parser/parser.cpp
         src/codegen.cpp
         src/h/lexer.h
         src/h/ast.h
         src/h/cobalt.h
+        src/h/parser.h
 )
 
 # connect llvm
