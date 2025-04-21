@@ -1,3 +1,8 @@
+#pragma once
+
+#ifndef COBALT_H
+#define COBALT_H
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -11,11 +16,11 @@
 #include "llvm/IR/Verifier.h"
 #include <map>
 
-namespace globals {
-
+namespace cblt::globals {
     static llvm::LLVMContext Context; // llvm core
     static std::unique_ptr<llvm::IRBuilder<>> Builder; // ir generation assist
     static std::unique_ptr<llvm::Module> Module; // functions and global variables
-    static std::map<std::string, llvm::Value *> Values; // values in scope track
-
+    static std::map<std::string, llvm::Value *> NamedValues; // values in scope track
 }
+
+#endif //COBALT_H
