@@ -63,7 +63,7 @@ namespace cblt::parse {
         ast::Stmt *parseStmt();
         ast::VarDeclStmt *parseVarDeclStmt();
         ast::Expr *parseExpr(int precedence);
-        ast::ExprStmt
+        ast::ExprStmt *parseExprStmt();
 
 
     };

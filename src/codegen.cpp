@@ -20,11 +20,15 @@ llvm::Value *Program::codegen() {
     return nullptr;
 }
 
-llvm::Value *ExpressionStmt::codegen() {
+llvm::Value *ExprStmt::codegen() {
     return nullptr;
 }
 
 llvm::Value *BlockStmt::codegen() {
+    return nullptr;
+}
+
+llvm::Value *ReturnStmt::codegen() {
     return nullptr;
 }
 

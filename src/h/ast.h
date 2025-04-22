@@ -66,11 +66,11 @@ namespace cblt::ast {
         llvm::Value *codegen() override;
     };
 
-    struct ExpressionStmt final : Stmt {
+    struct ExprStmt final : Stmt {
         lex::Token token;
         std::unique_ptr<Expr> expr;
 
-        void stmtNode() override;
+        void stmtNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
 

@@ -34,9 +34,7 @@ namespace cblt::ast {
         return res;
     }
 
-
     // ---------- Variable Declaration Implementations ---------
-
     [[nodiscard]] std::string VarDeclStmt::TokenLiteral() const override {
         return token.literal;
     }
@@ -56,7 +54,6 @@ namespace cblt::ast {
     }
 
     // ---------- Number Expression Implementations ---------
-
     NumExpr::NumExpr(Token token, const double value)
         : token(std::move(token)), value(value) {
     }
@@ -68,4 +65,61 @@ namespace cblt::ast {
     [[nodiscard]] std::string NumExpr::String() const override {
         return token.literal;
     }
+
+    // ---------- Boolean Implementations ---------
+    Boolean::Boolean(bool value) : value(value) {}
+    [[nodiscard]] std::string Boolean::TokenLiteral() const override {
+        return token.literal;
+    }
+
+    [[nodiscard]] std::string Boolean::String() const override {
+        return token.literal;
+    }
+
+
+
+
+    // ---------- Return Stmt Implementations ---------
+    [[nodiscard]] std::string ReturnStmt::TokenLiteral() const override {
+        return  token.literal;
+    }
+
+    [[nodiscard]] std::string ReturnStmt::String() const override {
+        std::string res = "";
+        res += token.literal;
+        if (returnValue) {
+            res += returnValue->String();
+        }
+
+        res += ';';
+        return res;
+    }
+
+    // ---------- ExprStmt Implementations ---------
+    [[nodiscard]] std::string ExprStmt::TokenLiteral() const override {
+        return token.literal;
+    }
+
+    [[nodiscard]] std::string ExprStmt::String() const override {
+        if (expr) {
+            return expr->String();
+        }
+        return "";
+    }
+
+    // ---------- BlockStmt Implementations ---------
+    [[nodiscard]] std::string BlockStmt::TokenLiteral() const override {
+        return  token.literal;
+    }
+
+    [[nodiscard]] std::string BlockStmt::String() const override {
+        std::string res = "{";
+        for (const auto &stmt: stmts) {
+            res += stmt->String() + " ";
+        }
+        res += "}";
+        return res;
+    }
+
+
 } // cblt::ast
