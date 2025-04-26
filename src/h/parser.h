@@ -45,6 +45,7 @@ namespace cblt::parse {
         lex::Token peekToken;
         std::unordered_map<lex::TokenType, PrefixParseFn> prefixParseFns;
         std::unordered_map<lex::TokenType, InfixParseFn> infixParseFns;
+
     public:
         explicit Parser(lex::Lexer &lexer);
         void registerPrefix(lex::TokenType tt, PrefixParseFn func);
@@ -54,16 +55,33 @@ namespace cblt::parse {
         void peekError(lex::TokenType tt);
         void noPrefixParseFnError(lex::TokenType tt);
 
-        bool curTokenIs(lex::TokenType tt) const;
-        bool peekTokenIs(lex::TokenType tt) const;
-        bool expectPeek(lex::TokenType tt) const;
-        std::vector<std::string> getErrors() const;
+        int peekPrecedence();
+        int currentPrecedence();
+
+        [[nodiscard]] bool curTokenIs(lex::TokenType tt) const;
+        [[nodiscard]] bool peekTokenIs(lex::TokenType tt) const;
+        [[nodiscard]] bool expectPeek(lex::TokenType tt) const;
+        [[nodiscard]] std::vector<std::string> getErrors() const;
 
         ast::Program *parseProgram();
         ast::Stmt *parseStmt();
         ast::VarDeclStmt *parseVarDeclStmt();
+        ast::ReturnStmt *parseReturnStmt();
         ast::Expr *parseExpr(int precedence);
         ast::ExprStmt *parseExprStmt();
+        ast::Identifier *parseIdentifier();
+
+        ast::Expr *parseNumLiteral();
+        ast::Expr *parseStringLiteral();
+        ast::Expr *parsePrefixExpr();
+        ast::Expr *parseInfixExpr();
+        ast::Expr *parseBoolean();
+        ast::Expr *parseGroupedExpr();
+        ast::Expr *parseIfExpr();
+        ast::BlockStmt *parseBlockStmt();
+        ast::Expr *parseFuncLiteral();
+        std::vector<ast::Identifier> *parseFunctionParams();
+        ast::Expr *parseFunctionCall(ast::CallExpr function);
 
 
     };

@@ -54,15 +54,15 @@ namespace cblt::ast {
     }
 
     // ---------- Number Expression Implementations ---------
-    NumExpr::NumExpr(Token token, const double value)
+    NumLiteral::NumLiteral(Token token, const double value)
         : token(std::move(token)), value(value) {
     }
 
-    [[nodiscard]] std::string NumExpr::TokenLiteral() const override {
+    [[nodiscard]] std::string NumLiteral::TokenLiteral() const override {
         return token.literal;
     }
 
-    [[nodiscard]] std::string NumExpr::String() const override {
+    [[nodiscard]] std::string NumLiteral::String() const override {
         return token.literal;
     }
 

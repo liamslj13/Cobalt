@@ -4,7 +4,7 @@
 using namespace cblt::ast;
 using namespace cblt::globals;
 
-llvm::Value *NumExpr::codegen() {
+llvm::Value *NumLiteral::codegen() {
     return llvm::ConstantFP::get(Context, llvm::APFloat(value));
 }
 

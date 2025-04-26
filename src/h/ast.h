@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "../h/cobalt.h"
-#include "h/lexer.h"
+#include "../h/lexer.h"
 
 
 namespace cblt::ast {
@@ -37,9 +37,9 @@ namespace cblt::ast {
 
     struct Program final : Node {
         std::vector<std::unique_ptr<Stmt>> stmts;
+
         [[nodiscard]] std::string  TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
@@ -47,11 +47,10 @@ namespace cblt::ast {
         lex::Token token;
         std::unique_ptr<Identifier> name;
         std::unique_ptr<Expr> value;
-        void stmtNode() override {}
 
+        void stmtNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
@@ -62,7 +61,6 @@ namespace cblt::ast {
         void stmtNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
@@ -73,7 +71,6 @@ namespace cblt::ast {
         void stmtNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
@@ -84,19 +81,17 @@ namespace cblt::ast {
         void stmtNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
-    struct NumExpr final : Expr {
+    struct NumLiteral final : Expr {
         lex::Token token;
         double value;
-        void exprNode() override {}
 
-        explicit NumExpr(lex::Token token, double value);
+        void exprNode() override {}
+        explicit NumLiteral(lex::Token token, double value);
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
 
@@ -105,14 +100,118 @@ namespace cblt::ast {
         bool value;
 
         explicit Boolean(bool value);
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    struct PrefixExpr final : Expr {
+        lex::Token token;
+        std::string op;
+        std::unique_ptr<Expr> right;
 
         void exprNode() override {}
         [[nodiscard]] std::string TokenLiteral() const override;
         [[nodiscard]] std::string String() const override;
-
         llvm::Value *codegen() override;
     };
-}
 
+    struct InfixExpr final : Expr {
+        lex::Token token;
+        std::unique_ptr<Expr> lhs;
+        std::unique_ptr<Expr> rhs;
+        std::string op;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    struct IfExpr final : Expr {
+        lex::Token token; // must be if
+        std::unique_ptr<Expr> condition;
+        std::unique_ptr<BlockStmt> consequence;
+        std::unique_ptr<BlockStmt> alternative;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    struct FuncLiteral final : Expr {
+        lex::Token token;
+        std::vector<std::unique_ptr<Identifier>> parameters;
+        std::unique_ptr<BlockStmt> body;
+
+        void  exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    struct CallExpr final : Expr {
+        lex::Token token;
+        std::unique_ptr<Expr> function;
+        std::vector<std::unique_ptr<Expr>> args;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    struct StringLiteral final : Expr {
+        lex::Token token;
+        std::string value;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    // this array structure will need to be altered
+    // there is are challenges in the way that arrays are handled
+    // depending on whether they are of dynamic or static size
+    // -> come back to later
+    struct ArrayLiteral final : Expr {
+        lex::Token token;
+        std::vector<std::unique_ptr<Expr>> elements;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+    // this too
+    struct IndexExpr final : Expr {
+        lex::Token token;
+        std::unique_ptr<Expr> left;
+        std::unique_ptr<Expr> index;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+
+
+    // This must also be looked at, not very easy to implement
+    /*
+    struct HashLiteral final : Expr {
+        lex::Token token;
+        std::unordered_map<Expr, Expr> pairs;
+
+        void exprNode() override {}
+        [[nodiscard]] std::string TokenLiteral() const override;
+        [[nodiscard]] std::string String() const override;
+        llvm::Value *codegen() override;
+    };
+    */
+}
 
 #endif //AST_H
