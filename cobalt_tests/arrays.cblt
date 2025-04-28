@@ -1,0 +1,3 @@
+// declare a num array
+decl nums : []num;
+

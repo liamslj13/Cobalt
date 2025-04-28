@@ -1,0 +1,22 @@
+// declare nums x, y, z
+decl x : num -> 5;
+decl y : num -> 9;
+decl z : num -> x + y;
+echo >> z;
+
+// do some operations and print to console
+z = 30 - z * 2;
+echo >> z; // 2
+y = y / 3;
+echo >> y;
+
+// declare function
+fnc returnMsg(message: str) -> str {
+    return message;
+}
+
+// call function, store in var
+decl myMessage : str -> returnMsg("Hello Cobalt!");
+
+// print var
+echo >> myMessage; // Hello Cobalt!
